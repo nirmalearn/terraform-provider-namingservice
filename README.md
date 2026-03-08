@@ -94,7 +94,8 @@ Registry requirements typically include:
 
 ## Next Improvements
 
-- Add resource validation for URL and short-code formats.
+- Add resource validation for URL and short-code formats
 - Add retries and configurable timeout.
 - Add auth support (token/header).
 - Add acceptance tests.
+
