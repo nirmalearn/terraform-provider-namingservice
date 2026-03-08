@@ -53,6 +53,10 @@ jobs:
           BIN_NAME="terraform-provider-namingservice_v${VERSION}_${GOOS}_${GOARCH}${{ matrix.ext }}"
           go build -o "$OUT_DIR/$BIN_NAME"
 
+          # Zip for Terraform Registry platform artifacts
+          ZIP_NAME="terraform-provider-namingservice_v${VERSION}_${GOOS}_${GOARCH}.zip"
+          zip -j "$OUT_DIR/$ZIP_NAME" "$OUT_DIR/$BIN_NAME"
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -77,7 +81,22 @@ jobs:
           set -euo pipefail
           VERSION="${GITHUB_REF_NAME#v}"
           cd "release/${VERSION}"
-          sha256sum terraform-provider-namingservice_v* > SHA256SUMS.txt
+          sha256sum terraform-provider-namingservice_v${VERSION}_*.zip > SHA256SUMS.txt
+
+      - name: Import GPG signing key (optional)
+        if: ${{ secrets.GPG_PRIVATE_KEY != '' && secrets.GPG_PASSPHRASE != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+
+      - name: Sign SHA256SUMS.txt (optional)
+        if: ${{ secrets.GPG_PRIVATE_KEY != '' && secrets.GPG_PASSPHRASE != '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "release/${VERSION}"
+          gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" --detach-sign --armor --output SHA256SUMS.txt.sig SHA256SUMS.txt
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
