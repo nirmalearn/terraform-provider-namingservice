@@ -43,8 +43,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="${GITHUB_REF_NAME#v}"
-          OUT_DIR="release/${VERSION}"
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          OUT_DIR="release/${TAG}"
           mkdir -p "$OUT_DIR"
 
           export GOOS="${{ matrix.goos }}"
@@ -82,8 +83,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="${GITHUB_REF_NAME#v}"
-          cd "release/${VERSION}"
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          cd "release/${TAG}"
           sha256sum terraform-provider-namingservice_v${VERSION}_*.zip > SHA256SUMS.txt
 
       - name: Import GPG signing key (optional)
@@ -98,7 +100,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cd "release/${VERSION}"
+          TAG="${GITHUB_REF_NAME}"
+          cd "release/${TAG}"
           gpg --batch --yes --pinentry-mode loopback --passphrase "${{ env.GPG_PASSPHRASE }}" --detach-sign --armor --output SHA256SUMS.txt.sig SHA256SUMS.txt
 
       - name: Publish GitHub release
