@@ -109,4 +109,4 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            release/**
+            release/${{ github.ref_name }}/*
