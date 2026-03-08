@@ -67,6 +67,9 @@ jobs:
     name: Publish release
     runs-on: ubuntu-latest
     needs: build
+    env:
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
     steps:
       - name: Download artifacts
@@ -84,19 +87,19 @@ jobs:
           sha256sum terraform-provider-namingservice_v${VERSION}_*.zip > SHA256SUMS.txt
 
       - name: Import GPG signing key (optional)
-        if: ${{ secrets.GPG_PRIVATE_KEY != '' && secrets.GPG_PASSPHRASE != '' }}
+        if: ${{ env.GPG_PRIVATE_KEY != '' && env.GPG_PASSPHRASE != '' }}
         shell: bash
         run: |
           set -euo pipefail
-          echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
+          echo "${{ env.GPG_PRIVATE_KEY }}" | gpg --batch --import
 
       - name: Sign SHA256SUMS.txt (optional)
-        if: ${{ secrets.GPG_PRIVATE_KEY != '' && secrets.GPG_PASSPHRASE != '' }}
+        if: ${{ env.GPG_PRIVATE_KEY != '' && env.GPG_PASSPHRASE != '' }}
         shell: bash
         run: |
           set -euo pipefail
           cd "release/${VERSION}"
-          gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" --detach-sign --armor --output SHA256SUMS.txt.sig SHA256SUMS.txt
+          gpg --batch --yes --pinentry-mode loopback --passphrase "${{ env.GPG_PASSPHRASE }}" --detach-sign --armor --output SHA256SUMS.txt.sig SHA256SUMS.txt
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
